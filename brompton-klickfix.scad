@@ -1,4 +1,6 @@
 
+use <MCAD/regular_shapes.scad>
+
 //Bodge amount for overlapping parts in difference operations
 b = 0.1;
 
@@ -11,6 +13,8 @@ w = 83;
 d = 19.7;
 h = kl+35;
 
+//Brompton socket height
+bsh = 70;
 	
 //Stiffeners
 sd = 5;
@@ -26,6 +30,14 @@ module fillet (r,l) {
 				translate([0,0,-l/2])
 					cylinder(2*l,r,r,$fn=16);
     }
+}
+
+module spool(sd,sl){
+	t = 0.1;
+	cylinder(sl,sd/2,sd/2,$fn=16);
+	cylinder(sd,sd*1.8/2+t,sd*1.8/2+t,$fn=16);
+	translate([0,0,sl-sd])
+		cylinder(sd,sd*1.8/2+t,sd*1.8/2+t,$fn=6);
 }
 
 //Extruded trapezium with rounded sides
@@ -90,8 +102,8 @@ module b_fill (r,a,h) {
 module b_socket () {
 	//Parameters
 	r = 13.7/2;	//Radius of groove
-	h = 70;		//Height of socket
-	c = 1.2;		//Clearance around mounting block
+	h = bsh;		//Height of socket
+	c = 2.45;		//Clearance around mounting block
 	w = 67.5+2*c-2*r;	//Width of socket between groove centres
 	a = 7.4;		//Tilt angle of grooves from vertical
 	t = 3;		//Thickness of socket shell
@@ -180,6 +192,11 @@ module body(){
 	kfl_h = 20;
 	kfl_d = 12.5;
 	
+	//fixing hole 
+	hd = 5; //diameter
+	hs = 40; // hole spacing
+	hy = 8;//9.85; // hole distance from front
+	
 	difference(){
 		union()
 			hull()
@@ -212,22 +229,11 @@ module body(){
 			
 		translate([-kfl_w/2,-kfl_d,kl-kfl_h])
 			cube([kfl_w,kfl_d,kfl_h+b]);
+		translate([hs/2,-hy,bsh])
+			spool(hd,kl-kfl_h-bsh);
+		translate([-hs/2,-hy,bsh])
+			spool(hd,kl-kfl_h-bsh);
 	}
-}
-
-module long_stiff(){
-	translate([w/2-2*sd,-d/2,-h/2])
-		cylinder(2*h,sd/2,sd/2,$fn=16);
-	translate([-w/2+2*sd,-d/2,-h/2])
-		cylinder(2*h,sd/2,sd/2,$fn=16);
-	translate([w/2-2*sd,-d/2,0])
-		cylinder(sd,sd,sd,$fn=16);
-	translate([-w/2+2*sd,-d/2,0])
-		cylinder(sd,sd,sd,$fn=16);
-	translate([w/2-2*sd,-d/2,h-sd])
-		cylinder(sd,sd,sd,$fn=16);
-	translate([-w/2+2*sd,-d/2,h-sd])
-		cylinder(sd,sd,sd,$fn=16);
 }
 
 union(){
