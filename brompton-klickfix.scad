@@ -1,38 +1,48 @@
 
+//Bodge amount for overlapping parts in difference operations
 b = 0.1;
-b_grv_r = 13.7/2;
-b_grv_ln = 70;
-b_grv_tol = 1.2;
-b_grv_sp = 67.5+2*b_grv_tol-2*b_grv_r;
-b_grv_ang = 7.4;
-b_grv_thick = 3;
-b_grv_step = 1;
-b_grv_bk_open = 34;
-b_tang_cube = [15,b_grv_thick+b,20];
-b_tang_h = 27;
 
+//Brompton socket parameters
+bs_r = 13.7/2;	//Radius of groove
+bs_h = 70;		//Height of socket
+bs_t = 1.2;		//Clearance around mounting block
+bs_w = 67.5+2*bs_t-2*bs_r;	//Width of socket between groove centres
+bs_a = 7.4;		//Tilt angle of grooves from vertical
+bs_t = 3;		//Thickness of socket shell
+bs_s = 1;		//Size of step in groove
+bs_sp = 2/3;	//Position of step relative to socket height
+bs_ow = 34;		//Width of cut-out in back of socket
+bs_tc = [15,bs_t+b,20];	//Size of latch hole
+bs_th = 27;		//Height of latch hole centre
+
+//Extruded trapezium with rounded sides
+//h=height
+//w=width of base between centres of rounded sides
+//a=angle of sides from vertical
+//r=radius of rounded sides (thickness = 2*r)
 module rd_tpz(h,w,a,r) {
-    w_t=w-2*h*tan(a);
     union() {
-        difference() {
+        intersection() {
+			//Create two cylinders for the rounded sides
             union() {
                 translate([-w/2,0,0])
                     rotate([0,a,0])
-                        translate([0,0,-r*tan(a)])
-                            cylinder(h/cos(a)+r*tan(a)+r*sin(a),r,r);               
+                        translate([0,0,-h/2])
+                            cylinder(2*h,r,r);               
                 translate([w/2,0,0])
                     rotate([0,-a,0])
-                        translate([0,0,-r*tan(a)])
-                            cylinder(h/cos(a)+r*tan(a)+r*sin(a),r,r);
+                        translate([0,0,-h/2])
+                            cylinder(2*h,r,r);
             }
+			//Intersect with cube to get desired height
             {
-                translate([0,0,-r*sin(a)-b/2])
-                    cube([w+2*r/cos(a)+b,r*2+b,2*r*sin(a)+b],true);
-                translate([0,0,h+r*sin(a)+b/2])
-                    cube([w_t+2*r/cos(a)+b,r*2+b,2*r*sin(a)+b],true);
+                translate([0,0,h/2])
+                    cube([2*w,r*4,h],true);
             }
        }
 
+	//Fill in between cylinders with an extruded trapezium
+    w_t=w-2*h*tan(a);
     translate([0,r,0])
         rotate([90,0,0])
             linear_extrude(height=2*r,convexity=10)
@@ -40,44 +50,52 @@ module rd_tpz(h,w,a,r) {
     }
 }
 
-
+//Round fillet for front of brompton socket
+//r = radius of fillet
+//a = tilt angle
+//h = height of fillet
 module b_fill (r,a,h) {
-    he = h/cos(a)+r*(tan(a)+sin(a));
-    difference(){
+    intersection(){
         rotate([0,a,0]){
+			//Create fillet by subtracting two cylinders from a cube
             difference(){
-                translate([-r,0,-r*tan(a)])
-                   cube([2*r,r,he]);
-                translate([-r,0,-r*tan(a)-b/2])
-                    cylinder(he+b,r,r);
-                translate([r,0,-r*tan(a)-b/2])
-                    cylinder(he+b,r-b,r);
+                translate([-r,0,-h/2])
+                   cube([2*r,r,2*h]);
+                translate([-r,0,-h/2])
+                    cylinder(2*h,r,r);
+                translate([r,0,-h/2])
+                    cylinder(2*h,r-b,r-b);
             }
         }
-        translate([0,0,-r*sin(a)-b/2])
-            cube([2*r/cos(a)+b,r*2+b,2*r*sin(a)+b],true);
-        translate([h*tan(a),0,h+r*sin(a)+b/2])
-            cube([2*r/cos(a)+b,r*2+b,2*r*sin(a)+b],true);
+		//Intersect with cube to get desired height
+		translate([0,0,h/2])
+			cube([2*h,r*4,h],true);
     }
 }
 
-
+//Create brompton socket
 difference() {
-    rd_tpz(b_grv_ln,b_grv_sp,b_grv_ang,b_grv_r+b_grv_thick);
+	//External shape of socket
+    rd_tpz(bs_h,bs_w,bs_a,bs_r+bs_t);
+	//Remove Lower part of inner
     translate([0,0,-b])
-        rd_tpz(b_grv_ln*2/3+b*2,b_grv_sp+b*sin(b_grv_ang),b_grv_ang,b_grv_r);
-    translate([0,0,b_grv_ln*2/3])
-        rd_tpz(b_grv_ln*1/3+b,b_grv_sp-2*b_grv_ln*2/3*tan(b_grv_ang)-2*b_grv_step ,b_grv_ang,b_grv_r);
-    translate([0,-b_grv_r+b/2,0])
+        rd_tpz(bs_h*bs_sp+b*2,bs_w+b*sin(bs_a),bs_a,bs_r);
+	//Remove Upper part of inner
+    translate([0,0,bs_h*bs_sp])
+        rd_tpz(bs_h*(1-bs_sp)+b,bs_w-2*bs_h*bs_sp*tan(bs_a)-2*bs_s ,bs_a,bs_r);
+	//Remove Rear cut-out
+    translate([0,-bs_r+b/2,0])
         rotate([90,0,0])
-            linear_extrude(height=b_grv_thick+b,convexity=10)
-                polygon([[-b_grv_sp/2,-b],[-b_grv_bk_open/2,(b_grv_sp-b_grv_bk_open)/2],[-b_grv_bk_open/2,b_grv_ln+b],[b_grv_bk_open/2,b_grv_ln+b],[b_grv_bk_open/2,(b_grv_sp-b_grv_bk_open)/2],[b_grv_sp/2,-b]]);
-    translate([0,b_grv_r+b_grv_thick/2,b_tang_h])
-        cube(b_tang_cube,center=true);
+            linear_extrude(height=bs_t+b,convexity=10)
+                polygon([[-bs_w/2,-b],[-bs_ow/2,(bs_w-bs_ow)/2],[-bs_ow/2,bs_h+b],[bs_ow/2,bs_h+b],[bs_ow/2,(bs_w-bs_ow)/2],[bs_w/2,-b]]);
+    //Remove Latch hole
+	translate([0,bs_r+bs_t/2,bs_th])
+        cube(bs_tc,center=true);
 }
 
-translate([-b_grv_sp/2-b_grv_r-b_grv_thick,0,0])
-    b_fill(b_grv_r+b_grv_thick,b_grv_ang,b_grv_ln);
+//Add fillets at front of socket
+translate([-bs_w/2-bs_r-bs_t,0,0])
+    b_fill(bs_r+bs_t,bs_a,bs_h);
 mirror([1,0,0])
-    translate([-b_grv_sp/2-b_grv_r-b_grv_thick,0,0])
-        b_fill(b_grv_r+b_grv_thick,b_grv_ang,b_grv_ln);
+    translate([-bs_w/2-bs_r-bs_t,0,0])
+        b_fill(bs_r+bs_t,bs_a,bs_h);
