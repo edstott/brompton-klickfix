@@ -2,6 +2,22 @@
 //Bodge amount for overlapping parts in difference operations
 b = 0.1;
 
+//Klickfix lift
+kl = 150;
+
+
+//Main body dimensions
+w = 83;
+d = 19.7;
+h = kl+35;
+
+	
+//Stiffeners
+sd = 5;
+
+//Corner radius
+r = 1.6;
+
 module fillet (r,l) {
 	rotate([0,0,180])
 		translate([-r,-r,0])
@@ -84,31 +100,32 @@ module b_socket () {
 	ow = 34;		//Width of cut-out in back of socket
 	tc = [15,t+b,20];	//Size of latch hole
 	th = 27;		//Height of latch hole centre
-	difference() {
-		//External shape of socket
-		rd_tpz(h,w,a,r+t);
-		//Remove Lower part of inner
-		translate([0,0,-b])
-			rd_tpz(h*sp+b*2,w+b*sin(a),a,r);
-		//Remove Upper part of inner
-		translate([0,0,h*sp])
-			rd_tpz(h*(1-sp)+b,w-2*h*sp*tan(a)-2*s ,a,r);
-		//Remove Rear cut-out
-		translate([0,-r+b/2,0])
-			rotate([90,0,0])
-				linear_extrude(height=t+b,convexity=10)
-					polygon([[-w/2,-b],[-ow/2,(w-ow)/2],[-ow/2,h+b],[ow/2,h+b],[ow/2,(w-ow)/2],[w/2,-b]]);
-		//Remove Latch hole
-		translate([0,r+t/2,th])
-			cube(tc,center=true);
-	}
+	translate([0,-r-t,0])
+		difference() {
+			//External shape of socket
+			rd_tpz(h,w,a,r+t);
+			//Remove Lower part of inner
+			translate([0,0,-b])
+				rd_tpz(h*sp+b*2,w+b*sin(a),a,r);
+			//Remove Upper part of inner
+			translate([0,0,h*sp])
+				rd_tpz(h*(1-sp)+b,w-2*h*sp*tan(a)-2*s ,a,r);
+			//Remove Rear cut-out
+			translate([0,-r+b/2,0])
+				rotate([90,0,0])
+					linear_extrude(height=t+b,convexity=10)
+						polygon([[-w/2,-b],[-ow/2,(w-ow)/2],[-ow/2,h+b],[ow/2,h+b],[ow/2,(w-ow)/2],[w/2,-b]]);
+			//Remove Latch hole
+			translate([0,r+t/2,th])
+				cube(tc,center=true);
+		}
 
 	//Add fillets at front of socket
-	translate([-w/2-r-t,0,0])
+	/*translate([-w/2-r-t,-r-t,0])
 		b_fill(r+t,a,h);
 	mirror([1,0,0])
-		translate([-w/2-r-t,0,0])
-			b_fill(r+t,a,h);
+		translate([-w/2-r-t,-r-t,0])
+			b_fill(r+t,a,h);*/
 }
 
 module kfix_plug () {
@@ -126,31 +143,97 @@ module kfix_plug () {
 	hull()
 		for(i=[0,1])
 			for(j=[0,1]) {
-				translate([-sw/2+sr+i*(sw-2*sr),d/2-sr,-h/2+sr+j*(h-2*sr)])
+				translate([-sw/2+sr+i*(sw-2*sr),sr,sr+j*(h-2*sr)])
 					sphere(sr,$fn=16);
-				translate([-sw/2+sr+i*(sw-2*sr),0,-h/2+sr+j*(h-2*sr)])
+				translate([-sw/2+sr+i*(sw-2*sr),d,sr+j*(h-2*sr)])
 					rotate([90,0,0])
 						cylinder(d/2,sr,sr,$fn=16);
 			}
-	
+	//Hooks
 	for(i=[0,1]) {
 		c = -hc/2+i*hc; //Centre of this hook
-		translate([c,0,0])
-			cube([hw,d,h],true);
-		translate([c-hw/2,d/2-ht,h/2]){
-			cylinder(ht,sr,sr);
-			cube([hw,ht,hl/2]);}
-		translate([c-hw/2,d/2-ht,h/2])
-			rotate([0,90,0])
-				rotate([0,0,180])
-					fillet(sr,hw);
+		translate([c-hw/2,0,0]){
+			cube([hw,d,h]);
+			translate([0,0,h])
+				hull(){
+					translate([sr,0,hl-sr])
+						rotate([-90,0,0])
+							cylinder(ht,sr,sr,$fn=16);
+					translate([hw-sr,0,hl-sr])
+						rotate([-90,0,0])
+							cylinder(ht,sr,sr,$fn=16);
+					cube([hw,ht,hl/2]);}
+			translate([0,ht,h])
+				rotate([0,90,0])
+					rotate([0,0,90])
+						fillet(sr,hw);
+		}
 	}
+	
 
 }
 
+module body(){
 
+	//KF latch cutout
+	kfl_w = 53;
+	kfl_h = 20;
+	kfl_d = 12.5;
+	
+	difference(){
+		union()
+			hull()
+			{
+				translate([-w/2,-d+r,r+b])
+					sphere(r,$fn=16);
+				translate([w/2,-d+r,r+b])
+					sphere(r,$fn=16);
+				translate([-w/2,0,r+b])
+					rotate([90,0,0])
+						cylinder(r,r,r,$fn=16);
+				translate([w/2,0,r+b])
+					rotate([90,0,0])
+						cylinder(r,r,r,$fn=16);
+				translate([w/2-r,-r,h-r])
+					cube([r,r,r]);
+				translate([-w/2,-r,h-r])
+					cube([r,r,r]);
+				translate([-w/2+r,-d+r,h-r])
+					cylinder(r,r,r,$fn=16);
+				translate([w/2-r,-d+r,h-r])
+					cylinder(r,r,r,$fn=16);
+				}
+		hull()
+			b_socket();
+		hull()
+			translate([0,0,kl])
+				rotate([0,0,180])
+					kfix_plug();
+			
+		translate([-kfl_w/2,-kfl_d,kl-kfl_h])
+			cube([kfl_w,kfl_d,kfl_h+b]);
+	}
+}
 
-//b_socket();
+module long_stiff(){
+	translate([w/2-2*sd,-d/2,-h/2])
+		cylinder(2*h,sd/2,sd/2,$fn=16);
+	translate([-w/2+2*sd,-d/2,-h/2])
+		cylinder(2*h,sd/2,sd/2,$fn=16);
+	translate([w/2-2*sd,-d/2,0])
+		cylinder(sd,sd,sd,$fn=16);
+	translate([-w/2+2*sd,-d/2,0])
+		cylinder(sd,sd,sd,$fn=16);
+	translate([w/2-2*sd,-d/2,h-sd])
+		cylinder(sd,sd,sd,$fn=16);
+	translate([-w/2+2*sd,-d/2,h-sd])
+		cylinder(sd,sd,sd,$fn=16);
+}
 
-translate([0,0,100])
-	kfix_plug();
+union(){
+		body();		
+		b_socket();
+		translate([0,0,kl])
+			rotate([0,0,180])
+				kfix_plug();
+	}
