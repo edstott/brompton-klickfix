@@ -2,19 +2,6 @@
 //Bodge amount for overlapping parts in difference operations
 b = 0.1;
 
-//Brompton socket parameters
-bs_r = 13.7/2;	//Radius of groove
-bs_h = 70;		//Height of socket
-bs_t = 1.2;		//Clearance around mounting block
-bs_w = 67.5+2*bs_t-2*bs_r;	//Width of socket between groove centres
-bs_a = 7.4;		//Tilt angle of grooves from vertical
-bs_t = 3;		//Thickness of socket shell
-bs_s = 1;		//Size of step in groove
-bs_sp = 2/3;	//Position of step relative to socket height
-bs_ow = 34;		//Width of cut-out in back of socket
-bs_tc = [15,bs_t+b,20];	//Size of latch hole
-bs_th = 27;		//Height of latch hole centre
-
 //Extruded trapezium with rounded sides
 //h=height
 //w=width of base between centres of rounded sides
@@ -73,29 +60,80 @@ module b_fill (r,a,h) {
     }
 }
 
-//Create brompton socket
-difference() {
-	//External shape of socket
-    rd_tpz(bs_h,bs_w,bs_a,bs_r+bs_t);
-	//Remove Lower part of inner
-    translate([0,0,-b])
-        rd_tpz(bs_h*bs_sp+b*2,bs_w+b*sin(bs_a),bs_a,bs_r);
-	//Remove Upper part of inner
-    translate([0,0,bs_h*bs_sp])
-        rd_tpz(bs_h*(1-bs_sp)+b,bs_w-2*bs_h*bs_sp*tan(bs_a)-2*bs_s ,bs_a,bs_r);
-	//Remove Rear cut-out
-    translate([0,-bs_r+b/2,0])
-        rotate([90,0,0])
-            linear_extrude(height=bs_t+b,convexity=10)
-                polygon([[-bs_w/2,-b],[-bs_ow/2,(bs_w-bs_ow)/2],[-bs_ow/2,bs_h+b],[bs_ow/2,bs_h+b],[bs_ow/2,(bs_w-bs_ow)/2],[bs_w/2,-b]]);
-    //Remove Latch hole
-	translate([0,bs_r+bs_t/2,bs_th])
-        cube(bs_tc,center=true);
+//Brompton socket
+module b_socket () {
+	//Parameters
+	r = 13.7/2;	//Radius of groove
+	h = 70;		//Height of socket
+	t = 1.2;		//Clearance around mounting block
+	w = 67.5+2*t-2*r;	//Width of socket between groove centres
+	a = 7.4;		//Tilt angle of grooves from vertical
+	t = 3;		//Thickness of socket shell
+	s = 1;		//Size of step in groove
+	sp = 2/3;	//Position of step relative to socket height
+	ow = 34;		//Width of cut-out in back of socket
+	tc = [15,t+b,20];	//Size of latch hole
+	th = 27;		//Height of latch hole centre
+	difference() {
+		//External shape of socket
+		rd_tpz(h,w,a,r+t);
+		//Remove Lower part of inner
+		translate([0,0,-b])
+			rd_tpz(h*sp+b*2,w+b*sin(a),a,r);
+		//Remove Upper part of inner
+		translate([0,0,h*sp])
+			rd_tpz(h*(1-sp)+b,w-2*h*sp*tan(a)-2*s ,a,r);
+		//Remove Rear cut-out
+		translate([0,-r+b/2,0])
+			rotate([90,0,0])
+				linear_extrude(height=t+b,convexity=10)
+					polygon([[-w/2,-b],[-ow/2,(w-ow)/2],[-ow/2,h+b],[ow/2,h+b],[ow/2,(w-ow)/2],[w/2,-b]]);
+		//Remove Latch hole
+		translate([0,r+t/2,th])
+			cube(tc,center=true);
+	}
+
+	//Add fillets at front of socket
+	translate([-w/2-r-t,0,0])
+		b_fill(r+t,a,h);
+	mirror([1,0,0])
+		translate([-w/2-r-t,0,0])
+			b_fill(r+t,a,h);
 }
 
-//Add fillets at front of socket
-translate([-bs_w/2-bs_r-bs_t,0,0])
-    b_fill(bs_r+bs_t,bs_a,bs_h);
-mirror([1,0,0])
-    translate([-bs_w/2-bs_r-bs_t,0,0])
-        b_fill(bs_r+bs_t,bs_a,bs_h);
+module kfix_plug () {
+	//Parameters
+	h = 35;		//Height of plug
+	d = 12.5;	//Depth of plug
+	sw = 35;	//Width of square
+	sr = 1.6;	//Radius of square corners
+	hc = 68;	//Hook spacing
+	hw = 15;	//Hook width
+	hl = 6;		//Hook length
+	ht = 3.5;	//Hook thickness
+	
+	//Square plug
+	hull()
+		for(i=[0,1])
+			for(j=[0,1]) {
+				translate([-sw/2+sr+i*(sw-2*sr),d/2-sr,-h/2+sr+j*(h-2*sr)])
+					sphere(sr,$fn=16);
+				translate([-sw/2+sr+i*(sw-2*sr),0,-h/2+sr+j*(h-2*sr)])
+					rotate([90,0,0])
+						cylinder(d/2,sr,sr,$fn=16);
+			}
+	
+	for(i=[0,1]) {
+		c = -hc/2+i*hc; //Centre of this hook
+		translate([c,0,0])
+			cube([hw,d,h],true);
+		translate([c,d/2-ht/2,h/2+hl/2])
+			cube([hw,ht,hl],true);
+	}
+
+}
+
+b_socket();
+
+translate([0,0,100])
+	kfix_plug();
