@@ -2,6 +2,16 @@
 //Bodge amount for overlapping parts in difference operations
 b = 0.1;
 
+module fillet (r,l) {
+	rotate([0,0,180])
+		translate([-r,-r,0])
+			difference() {
+				cube([r,r,l]);
+				translate([0,0,-l/2])
+					cylinder(2*l,r,r,$fn=16);
+    }
+}
+
 //Extruded trapezium with rounded sides
 //h=height
 //w=width of base between centres of rounded sides
@@ -65,8 +75,8 @@ module b_socket () {
 	//Parameters
 	r = 13.7/2;	//Radius of groove
 	h = 70;		//Height of socket
-	t = 1.2;		//Clearance around mounting block
-	w = 67.5+2*t-2*r;	//Width of socket between groove centres
+	c = 1.2;		//Clearance around mounting block
+	w = 67.5+2*c-2*r;	//Width of socket between groove centres
 	a = 7.4;		//Tilt angle of grooves from vertical
 	t = 3;		//Thickness of socket shell
 	s = 1;		//Size of step in groove
@@ -127,13 +137,20 @@ module kfix_plug () {
 		c = -hc/2+i*hc; //Centre of this hook
 		translate([c,0,0])
 			cube([hw,d,h],true);
-		translate([c,d/2-ht/2,h/2+hl/2])
-			cube([hw,ht,hl],true);
+		translate([c-hw/2,d/2-ht,h/2]){
+			cylinder(ht,sr,sr);
+			cube([hw,ht,hl/2]);}
+		translate([c-hw/2,d/2-ht,h/2])
+			rotate([0,90,0])
+				rotate([0,0,180])
+					fillet(sr,hw);
 	}
 
 }
 
-b_socket();
+
+
+//b_socket();
 
 translate([0,0,100])
 	kfix_plug();
