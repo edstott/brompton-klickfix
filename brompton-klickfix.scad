@@ -13,6 +13,9 @@ w = 83;
 d = 19.7;
 h = kl+35;
 
+//Split height
+spl = 100;
+
 //Brompton socket height
 bsh = 70;
 	
@@ -39,6 +42,37 @@ module spool(sd,sl){
 	translate([0,0,sl-sd])
 		cylinder(sd,sd*1.8/2+t,sd*1.8/2+t,$fn=6);
 }
+
+//Cube with 8 rounded edges and 4 square edges
+module semi_rounded_cube(w,d,h,r) {
+    hull()
+        for(i=[0,1])
+            for(j=[0,1])
+                translate([r+i*(w-2*r),r+j*(d-2*r),0]){
+                    cylinder(r,r,r,$fn=16);
+                    translate([0,0,h-r])
+                        sphere(r,$fn=16);
+                }
+}
+
+//Cube with 5 rounded edges and 7 square edges
+module demi_rounded_cube(w,d,h,r) {
+    hull()
+        for(i=[0,1])
+            translate([r+i*(w-2*r),0,0]){
+                translate([0,r,0])
+                    cylinder(r,r,r,$fn=16);
+                translate([-r,d-2*r,0])
+                    cube([2*r,2*r,2*r]);
+                translate([0,r,h-r])
+                    sphere(r,$fn=16);
+                translate([0,d-r,h-r])
+                    rotate([-90,0,0])
+                        cylinder(r,r,r,$fn=16);
+            }
+
+}
+
 
 //Extruded trapezium with rounded sides
 //h=height
@@ -189,8 +223,17 @@ module body(){
 
 	//KF latch cutout
 	kfl_w = 53;
-	kfl_h = 20;
+	kfl_h = 10;
 	kfl_d = 12.5;
+    
+    //KF tab cutout
+    kft_w = 20;
+    kft_h = 10;
+    kft_d = 15;
+    kft_f = 7; //finger radius
+    
+    //KF_hook
+    kfh_r = 3;
 	
 	//fixing hole 
 	hd = 5; //diameter
@@ -199,6 +242,7 @@ module body(){
 	
 	difference(){
 		union()
+            //Outer cube of block
 			hull()
 			{
 				translate([-w/2,-d+r,r+b])
@@ -220,20 +264,37 @@ module body(){
 				translate([w/2-r,-d+r,h-r])
 					cylinder(r,r,r,$fn=16);
 				}
-		hull()
+		//Minus hull of brompton socket
+        hull()
 			b_socket();
+        //Minus hull of klickfix plug
 		hull()
 			translate([0,0,kl])
 				rotate([0,0,180])
 					kfix_plug();
-			
+		
+        //Minus gap below klickfix 
 		translate([-kfl_w/2,-kfl_d,kl-kfl_h])
 			cube([kfl_w,kfl_d,kfl_h+b]);
+                
+        //Minus 2x fastening holes
 		translate([hs/2,-hy,bsh])
 			spool(hd,kl-kfl_h-bsh);
 		translate([-hs/2,-hy,bsh])
 			spool(hd,kl-kfl_h-bsh);
-	}
+            
+        //Minus latch tab hole
+        translate([-kft_w/2,-d+kft_d,spl])
+            mirror([0,1,0])
+            {
+                demi_rounded_cube(kft_w,kft_d,kft_h,r);
+                translate([kft_w/2,kft_d,kft_h])
+                    sphere(kft_f,$fn=32);
+                translate([kft_w/2,kfh_r+r,kft_h-r])
+                    cylinder(h-spl-kft_h,kfh_r,kfh_r,$fn=16);
+                }
+            }
+
 }
 
 union(){
