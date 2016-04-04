@@ -35,7 +35,7 @@ module fillet (r,l) {
     }
 }
 
-module spool(sd,sl){
+module spool(sd,sl) {
 	t = 0.1;
 	cylinder(sl,sd/2,sd/2,$fn=16);
 	cylinder(sd,sd*1.8/2+t,sd*1.8/2+t,$fn=16);
@@ -219,6 +219,27 @@ module kfix_plug () {
 
 }
 
+module kf_tab_cutout(){
+    
+    //KF tab cutout
+    kft_w = 20;
+    kft_h = 10;
+    kft_f = 7; //finger radius   
+    kfh_r = 3; //radius of hook channel
+	kft_hd = 5+kfh_r; //Depth of hook channel from front
+    kft_d = d-kft_hd+kfh_r+r; //Overall depth of tab cutout
+
+    translate([-kft_w/2,kft_d,0])
+        mirror([0,1,0]) {
+			demi_rounded_cube(kft_w,kft_d,kft_h,r);
+			translate([kft_w/2,kft_d,kft_h])
+				sphere(kft_f,$fn=32);
+			translate([kft_w/2,kfh_r+r,kft_h-r])
+				cylinder(h-spl-kft_h,kfh_r,kfh_r,$fn=16);
+	}
+
+}
+
 module body(){
 
 	//KF latch cutout
@@ -226,14 +247,6 @@ module body(){
 	kfl_h = 10;
 	kfl_d = 12.5;
     
-    //KF tab cutout
-    kft_w = 20;
-    kft_h = 10;
-    kft_d = 15;
-    kft_f = 7; //finger radius
-    
-    //KF_hook
-    kfh_r = 3;
 	
 	//fixing hole 
 	hd = 5; //diameter
@@ -284,23 +297,16 @@ module body(){
 			spool(hd,kl-kfl_h-bsh);
             
         //Minus latch tab hole
-        translate([-kft_w/2,-d+kft_d,spl])
-            mirror([0,1,0])
-            {
-                demi_rounded_cube(kft_w,kft_d,kft_h,r);
-                translate([kft_w/2,kft_d,kft_h])
-                    sphere(kft_f,$fn=32);
-                translate([kft_w/2,kfh_r+r,kft_h-r])
-                    cylinder(h-spl-kft_h,kfh_r,kfh_r,$fn=16);
-                }
-            }
-
+        translate([0,-d,spl])
+			kf_tab_cutout();
+	}
 }
 
-union(){
+module brompton_klickfix(){
 		body();		
 		b_socket();
 		translate([0,0,kl])
 			rotate([0,0,180])
 				kfix_plug();
-	}
+}
+
