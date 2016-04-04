@@ -5,7 +5,7 @@ use <MCAD/regular_shapes.scad>
 b = 0.1;
 
 //Klickfix lift
-kl = 150;
+kl = 120;
 
 
 //Main body dimensions
@@ -14,7 +14,7 @@ d = 19.7;
 h = kl+35;
 
 //Split height
-spl = 100;
+spl = 80;
 
 //Brompton socket height
 bsh = 70;
@@ -224,18 +224,19 @@ module kf_tab_cutout(){
     //KF tab cutout
     kft_w = 20;
     kft_h = 10;
-    kft_f = 7; //finger radius   
+    kft_f = 10; //finger radius   
     kfh_r = 3; //radius of hook channel
 	kft_hd = 5+kfh_r; //Depth of hook channel from front
     kft_d = d-kft_hd+kfh_r+r; //Overall depth of tab cutout
+	kfh_sr = 3; //Depth of spring recess
 
     translate([-kft_w/2,kft_d,0])
         mirror([0,1,0]) {
 			demi_rounded_cube(kft_w,kft_d,kft_h,r);
 			translate([kft_w/2,kft_d,kft_h])
 				sphere(kft_f,$fn=32);
-			translate([kft_w/2,kfh_r+r,kft_h-r])
-				cylinder(h-spl-kft_h,kfh_r,kfh_r,$fn=16);
+			translate([kft_w/2,kfh_r+r,-kfh_sr])
+				cylinder(h-spl+kfh_sr,kfh_r,kfh_r,$fn=16);
 	}
 
 }
@@ -244,7 +245,7 @@ module body(){
 
 	//KF latch cutout
 	kfl_w = 53;
-	kfl_h = 10;
+	kfl_h = 20;
 	kfl_d = 12.5;
     
 	
@@ -310,3 +311,4 @@ module brompton_klickfix(){
 				kfix_plug();
 }
 
+brompton_klickfix();
