@@ -1,5 +1,5 @@
 
-use <MCAD/regular_shapes.scad>
+use <flare.scad>
 
 //Bodge amount for overlapping parts in difference operations
 b = 0.1;
@@ -225,7 +225,7 @@ module kf_tab_cutout(){
     kft_w = 20;
     kft_h = 10;
     kft_f = 10; //finger radius   
-    kfh_r = 3; //radius of hook channel
+    kfh_r = 3.2; //radius of hook channel
 	kft_hd = 5+kfh_r; //Depth of hook channel from front
     kft_d = d-kft_hd+kfh_r+r; //Overall depth of tab cutout
 	kfh_sr = 3; //Depth of spring recess
@@ -301,14 +301,27 @@ module body(){
         translate([0,-d,spl])
 			kf_tab_cutout();
 	}
+	
 }
 
 module brompton_klickfix(){
-		body();		
-		b_socket();
-		translate([0,0,kl])
-			rotate([0,0,180])
-				kfix_plug();
+	
+	//Pull hole
+	pr = 10;//pull hole radius
+	pfr = 5;//pull hole flare radius
+	ph = kl+17.5;//pull hole height
+	
+	difference(){
+		union(){
+			body();		
+			b_socket();
+			translate([0,0,kl])
+				rotate([0,0,180])
+					kfix_plug();
+		}
+		//Minus pull hole
+		translate([0,-d,ph])rotate([-90,0,0]) flare(d,pr,pfr);
+	}
 }
 
 brompton_klickfix();
