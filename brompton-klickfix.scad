@@ -223,12 +223,12 @@ module kf_tab_cutout(){
     
     //KF tab cutout
     kft_w = 20;
-    kft_h = 10;
+    kft_h = 11;
     kft_f = 10; //finger radius   
     kfh_r = 3.2; //radius of hook channel
-	kft_hd = 5+kfh_r; //Depth of hook channel from front
+	kft_hd = 3+kfh_r; //Depth of hook channel from front
     kft_d = d-kft_hd+kfh_r+r; //Overall depth of tab cutout
-	kfh_sr = 3; //Depth of spring recess
+	kfh_sr = 10; //Depth of spring recess
 
     translate([-kft_w/2,kft_d,0])
         mirror([0,1,0]) {
@@ -253,6 +253,13 @@ module body(){
 	hd = 5; //diameter
 	hs = 40; // hole spacing
 	hy = 8;//9.85; // hole distance from front
+	
+	//text
+	th = 12; //text height
+	tl = 10; //text offset from bottom
+	tx = (w+34)/4; //text horizontal offset from centre
+	
+	font = "Verdana";
 	
 	difference(){
 		union()
@@ -292,15 +299,19 @@ module body(){
 			cube([kfl_w,kfl_d,kfl_h+b]);
                 
         //Minus 2x fastening holes
-		translate([hs/2,-hy,bsh])
+		/*translate([hs/2,-hy,bsh])
 			spool(hd,kl-kfl_h-bsh);
 		translate([-hs/2,-hy,bsh])
-			spool(hd,kl-kfl_h-bsh);
+			spool(hd,kl-kfl_h-bsh);*/
             
         //Minus latch tab hole
         translate([0,-d,spl])
 			kf_tab_cutout();
 	}
+	
+	
+	translate([-tx,-d,tl]) rotate([-90,-90,180])linear_extrude(1) text("BROMPTON",th,font,valign="center");
+	translate([tx,-d,h-tl]) rotate([-90,90,180])linear_extrude(1) text("KLICKFIX",th,font,valign="center");
 	
 }
 
