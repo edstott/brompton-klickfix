@@ -16,7 +16,7 @@ h = 155;	//155 for Ortlieb Ultimate6 M Classic
 kl = h-35;	//Klickfix plug is 35mm high
 
 //Split height / level of latch tab cutout
-spl = kl-40;
+spl = kl-42;
 
 //Brompton socket height
 bsh = 70;	//70 for socket found on Brompton O-bag
@@ -42,7 +42,8 @@ module kf_tab_cutout(){
 
     translate([-kft_w/2,kft_d,0])
         mirror([0,1,0]) {
-			demi_rounded_cube(kft_w,kft_d,kft_h,r);
+			//demi_rounded_cube(kft_w,kft_d,kft_h,r);
+			cube([kft_w,kft_d,kft_h]);
 			translate([kft_w/2,kft_d,kft_h])
 				sphere(kft_f,$fn=32);
 			translate([kft_w/2,kfh_r+r,-kfh_sr])
@@ -55,7 +56,7 @@ module body(){
 
 	//KF latch cutout
 	kfl_w = 53;
-	kfl_h = 20;
+	kfl_h = 22;
 	kfl_d = 12.5;
     
 	
