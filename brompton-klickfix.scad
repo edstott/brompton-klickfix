@@ -4,16 +4,16 @@ use <brompton_socket.scad>
 use <klickfix_plug.scad>
 
 //Bodge amount for overlapping parts in difference operations
-b = 0.1;
-
-//Klickfix lift
-kl = 120;	//120 for Ortlieb Ultimate6 M Classic
+//b = 0.1;
 
 
 //Main body dimensions
 w = 83;		//83 to equal width of Klickflix plug
 d = 19.7;	//19.7 to equal depth of Brompton socket
-h = kl+35;	//Klickfix lift plus 35 to equal height of Klickfix plug
+h = 155;	//155 for Ortlieb Ultimate6 M Classic
+
+//Klickfix lift
+kl = h-35;	//Klickfix plug is 35mm high
 
 //Split height / level of latch tab cutout
 spl = kl-40;
@@ -28,28 +28,6 @@ sd = 5;	//Diameter of stiffening/joining bolts
 //Corner radius
 r = 1.6;
 
-//Round fillet for front of brompton socket
-//r = radius of fillet
-//a = tilt angle
-//h = height of fillet
-module b_fill (r,a,h) {
-    intersection(){
-        rotate([0,a,0]){
-			//Create fillet by subtracting two cylinders from a cube
-            difference(){
-                translate([-r,0,-h/2])
-                   cube([2*r,r,2*h]);
-                translate([-r,0,-h/2])
-                    cylinder(2*h,r,r);
-                translate([r,0,-h/2])
-                    cylinder(2*h,r-b,r-b);
-            }
-        }
-		//Intersect with cube to get desired height
-		translate([0,0,h/2])
-			cube([2*h,r*4,h],true);
-    }
-}
 
 module kf_tab_cutout(){
     
@@ -93,30 +71,10 @@ module body(){
 	
 	font = "Verdana";
 	
+	
 	difference(){
-		union()
-            //Outer cube of block
-			hull()
-			{
-				translate([-w/2,-d+r,r+b])
-					sphere(r,$fn=16);
-				translate([w/2,-d+r,r+b])
-					sphere(r,$fn=16);
-				translate([-w/2,0,r+b])
-					rotate([90,0,0])
-						cylinder(r,r,r,$fn=16);
-				translate([w/2,0,r+b])
-					rotate([90,0,0])
-						cylinder(r,r,r,$fn=16);
-				translate([w/2-r,-r,h-r])
-					cube([r,r,r]);
-				translate([-w/2,-r,h-r])
-					cube([r,r,r]);
-				translate([-w/2+r,-d+r,h-r])
-					cylinder(r,r,r,$fn=16);
-				translate([w/2-r,-d+r,h-r])
-					cylinder(r,r,r,$fn=16);
-				}
+		//Main block
+		translate([-w/2,0,0]) rotate([90,0,0]) demi_rounded_cube(w,h,d,r);
 		//Minus hull of brompton socket
         hull()
 			b_socket(bsh);
@@ -128,7 +86,7 @@ module body(){
 		
         //Minus gap below klickfix 
 		translate([-kfl_w/2,-kfl_d,kl-kfl_h])
-			cube([kfl_w,kfl_d,kfl_h+b]);
+			cube([kfl_w,kfl_d,kfl_h]);
                 
         //Minus 2x fastening holes
 		if (stiff){
@@ -143,9 +101,12 @@ module body(){
 			kf_tab_cutout();
 	}
 	
-	
+	//Add labels to stop people trying to use it upside down
 	translate([-tx,-d,tl]) rotate([-90,-90,180])linear_extrude(1) text("BROMPTON",th,font,valign="center");
 	translate([tx,-d,h-tl]) rotate([-90,90,180])linear_extrude(1) text("KLICKFIX",th,font,valign="center");
+	//Label the height of this build
+	translate([-tx,-d,h-tl]) rotate([90,0,0])linear_extrude(1) text(str(h),th/2,font,valign="center",halign="center");
+	
 	
 }
 
