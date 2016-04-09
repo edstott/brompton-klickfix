@@ -39,8 +39,8 @@ module kf_tab_cutout(){
     kft_h = 11;
     kft_f = 10; //finger radius   
     kfh_r = 3.2; //radius of hook channel
-	kft_hd = 3+kfh_r; //Depth of hook channel from front
-    kft_d = d-kft_hd+kfh_r+r; //Overall depth of tab cutout
+	kft_hd = 2+kfh_r; //Depth of hook channel from front
+    kft_d = d-kft_hd+kfh_r+1.5; //Overall depth of tab cutout
 	kfh_sr = 10; //Depth of spring recess
 
     translate([-kft_w/2,kft_d,0])
