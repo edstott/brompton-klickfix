@@ -28,6 +28,9 @@ sd = 5;	//Diameter of stiffening/joining bolts
 //Corner radius
 r = 1.6;
 
+//Apply text
+txt = true;
+
 
 module kf_tab_cutout(){
     
@@ -67,7 +70,8 @@ module body(){
 	
 	//text
 	th = 12; //text height
-	tl = 10; //text offset from bottom
+	tlb = 12; //text offset from bottom
+	tlt = 6; //text offset from bottom
 	tx = (w+34)/4; //text horizontal offset from centre
 	
 	font = "Verdana";
@@ -103,10 +107,12 @@ module body(){
 	}
 	
 	//Add labels to stop people trying to use it upside down
-	translate([-tx,-d,tl]) rotate([-90,-90,180])linear_extrude(1) text("BROMPTON",th,font,valign="center");
-	translate([tx,-d,h-tl]) rotate([-90,90,180])linear_extrude(1) text("KLICKFIX",th,font,valign="center");
-	//Label the height of this build
-	translate([-tx,-d,h-tl]) rotate([90,0,0])linear_extrude(1) text(str(h),th/2,font,valign="center",halign="center");
+	if (txt) {
+		translate([-tx,-d,tlb]) rotate([-90,-90,180])linear_extrude(1) text("BROMPTON",th,font,valign="center");
+		translate([tx,-d,h-tlt]) rotate([-90,90,180])linear_extrude(1) text("KLICKFIX",th,font,valign="center");
+		//Label the height of this build
+		translate([-tx,-d,h-tlt]) rotate([90,0,0])linear_extrude(1) text(str(h),th/2,font,valign="top",halign="center");
+	}
 	
 	
 }
