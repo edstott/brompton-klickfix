@@ -41,7 +41,7 @@ module kf_tab_cutout(){
     kfh_r = 3.25; //radius of hook channel
 	kft_hd = 2.2+kfh_r; //Depth of hook channel from front
     kft_d = d-kft_hd+kfh_r+1.5; //Overall depth of tab cutout
-	kfh_sr = 10; //Depth of spring recess
+	kfh_sr = 2; //Depth of spring recess
 	
 	echo("Depth of hook channel",kft_hd);
 
@@ -52,7 +52,7 @@ module kf_tab_cutout(){
 			translate([kft_w/2,kft_d,kft_h])
 				sphere(kft_f,$fn=32);
 			translate([kft_w/2,kfh_r+r,-kfh_sr])
-				cylinder(h-spl+kfh_sr,kfh_r,kfh_r,$fn=16);
+				cylinder(kl-spl,kfh_r,kfh_r,$fn=16);
 	}
 
 }
